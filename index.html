@@ -262,12 +262,13 @@
             padding: 3rem;
             border-radius: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
         .form-group {
             margin-bottom: 1.5rem;
+            width: 100%;
         }
 
         .form-group label {
@@ -275,6 +276,7 @@
             margin-bottom: 0.5rem;
             font-weight: 600;
             color: #667eea;
+            font-size: 1rem;
         }
 
         .form-group input,
@@ -286,6 +288,7 @@
             border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
+            box-sizing: border-box;
         }
 
         .form-group input:focus,
@@ -446,8 +449,8 @@
             <div class="contact-details">
                 <div class="contact-item">
                     <h4>📞 Phone</h4>
-                    <p>+49 12345678912</p>
-                    <p>+49 98765432198</p>
+                    <p>+91 98765 43210</p>
+                    <p>+91 98765 43211</p>
                 </div>
                 <div class="contact-item">
                     <h4>📧 Email</h4>
@@ -457,7 +460,7 @@
                 <div class="contact-item">
                     <h4>📍 Address</h4>
                     <p>123 Student Street</p>
-                    <p>hannover, lowersaxony - 30198</p>
+                    <p>City, State - 123456</p>
                 </div>
             </div>
         </div>
@@ -475,7 +478,7 @@
                 <div class="form-group">
                     <label for="age">Age *</label>
                     <input type="number" id="age" name="age" min="6" required>
-                </div
+                </div>
                 <div class="form-group">
                     <label for="email">Email *</label>
                     <input type="email" id="email" name="email" required>
@@ -512,6 +515,7 @@
         <p>Making Students Feel at Home Since Day One</p>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -527,12 +531,37 @@
             });
         });
 
-        // Form submission
+        // Form submission with PDF generation
         document.getElementById('applicationForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Thank you for your application! We will contact you soon.');
+            
+            // Get form data
+            const formData = {
+                name: document.getElementById('name').value,
+                age: document.getElementById('age').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                institution: document.getElementById('institution').value,
+                roomType: document.getElementById('roomType').value,
+                message: document.getElementById('message').value
+            };
+            
+            // Generate PDF
+            generatePDF(formData);
+            
+            // Show success message
+            alert('Thank you for your application! Your application PDF has been generated and downloaded.');
             this.reset();
         });
-    </script>
+
+        function generatePDF(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Set colors
+            const primaryColor = [102, 126, 234];
+            const textColor = [51, 51, 51];
+            
+            // Add header with
 </body>
 </html>
