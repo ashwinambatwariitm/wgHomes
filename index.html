@@ -291,6 +291,11 @@
             box-sizing: border-box;
         }
 
+        .form-group input[type="file"] {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
@@ -488,6 +493,10 @@
                     <input type="tel" id="phone" name="phone" required>
                 </div>
                 <div class="form-group">
+                    <label for="photo">Upload Photo *</label>
+                    <input type="file" id="photo" name="photo" accept="image/*" required>
+                </div>
+                <div class="form-group">
                     <label for="institution">School/College Name *</label>
                     <input type="text" id="institution" name="institution" required>
                 </div>
@@ -542,26 +551,127 @@
                 email: document.getElementById('email').value,
                 phone: document.getElementById('phone').value,
                 institution: document.getElementById('institution').value,
-                roomType: document.getElementById('roomType').value,
+                roomType: document.getElementById('roomType').options[document.getElementById('roomType').selectedIndex].text,
                 message: document.getElementById('message').value
             };
             
-            // Generate PDF
-            generatePDF(formData);
-            
-            // Show success message
-            alert('Thank you for your application! Your application PDF has been generated and downloaded.');
-            this.reset();
+            // Get photo
+            const photoInput = document.getElementById('photo');
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    formData.photo = e.target.result;
+                    generatePDF(formData);
+                    alert('Thank you for your application! Your application PDF has been generated and downloaded.');
+                    document.getElementById('applicationForm').reset();
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            }
         });
 
         function generatePDF(data) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Set colors
+            // Colors
             const primaryColor = [102, 126, 234];
-            const textColor = [51, 51, 51];
+            const darkColor = [51, 51, 51];
             
-            // Add header with
+            // Header background
+            doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.rect(0, 0, 210, 40, 'F');
+            
+            // Title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('WG HOMES', 105, 20, { align: 'center' });
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'normal');
+            doc.text('Hostel Admission Application', 105, 30, { align: 'center' });
+            
+            // Add photo
+            if (data.photo) {
+                doc.addImage(data.photo, 'JPEG', 150, 50, 40, 50);
+            }
+            
+            // Application details
+            doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('Applicant Details', 20, 60);
+            
+            // Draw a line
+            doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setLineWidth(0.5);
+            doc.line(20, 65, 190, 65);
+            
+            // Details
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            let yPos = 80;
+            
+            // Full Name
+            doc.setFont(undefined, 'bold');
+            doc.text('Full Name:', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.name, 60, yPos);
+            
+            yPos += 15;
+            doc.setFont(undefined, 'bold');
+            doc.text('Age:', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.age.toString(), 60, yPos);
+            
+            yPos += 15;
+            doc.setFont(undefined, 'bold');
+            doc.text('Email:', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.email, 60, yPos);
+            
+            yPos += 15;
+            doc.setFont(undefined, 'bold');
+            doc.text('Phone Number:', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.phone, 60, yPos);
+            
+            yPos += 15;
+            doc.setFont(undefined, 'bold');
+            doc.text('School/College:', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.institution, 60, yPos);
+            
+            yPos += 15;
+            doc.setFont(undefined, 'bold');
+            doc.text('Preferred Room:', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.roomType, 60, yPos);
+            
+            yPos += 20;
+            
+            // Additional Information
+            if (data.message) {
+                doc.setFont(undefined, 'bold');
+                doc.text('Additional Information:', 20, yPos);
+                yPos += 10;
+                doc.setFont(undefined, 'normal');
+                const splitMessage = doc.splitTextToSize(data.message, 170);
+                doc.text(splitMessage, 20, yPos);
+                yPos += (splitMessage.length * 7);
+            }
+            
+            // Footer
+            yPos = 270;
+            doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 7;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Application Date: ' + new Date().toLocaleDateString(), 20, yPos);
+            doc.text('WG Homes - Your Home Away From Home', 105, yPos, { align: 'center' });
+            
+            // Save PDF
+            doc.save('WG_Homes_Application_' + data.name.replace(/\s+/g, '_') + '.pdf');
+        }
 </body>
 </html>
