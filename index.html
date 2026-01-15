@@ -321,6 +321,92 @@
             box-shadow: 0 5px 15px rgba(102,126,234,0.4);
         }
 
+        /* PDF Preview */
+        .pdf-preview {
+            display: none;
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 2rem auto;
+            border: 2px solid #667eea;
+        }
+
+        .pdf-preview.active {
+            display: block;
+        }
+
+        .pdf-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .pdf-content {
+            display: grid;
+            grid-template-columns: 1fr 150px;
+            gap: 2rem;
+        }
+
+        .pdf-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pdf-field {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .pdf-field strong {
+            color: #667eea;
+        }
+
+        .pdf-photo {
+            text-align: center;
+        }
+
+        .pdf-photo img {
+            max-width: 150px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 3px solid #667eea;
+        }
+
+        .pdf-footer {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 2px solid #667eea;
+            text-align: center;
+            color: #666;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
         /* Footer */
         footer {
             background: #333;
@@ -342,6 +428,25 @@
             nav ul {
                 gap: 1rem;
                 padding: 0 1rem;
+            }
+
+            .pdf-content {
+                grid-template-columns: 1fr;
+            }
+
+            .pdf-field {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            nav, .download-btn, .submit-btn {
+                display: none;
+            }
+            
+            .pdf-preview {
+                box-shadow: none;
+                border: none;
             }
         }
     </style>
@@ -516,6 +621,62 @@
                 <button type="submit" class="submit-btn">Submit Application</button>
             </form>
         </div>
+
+        <!-- PDF Preview -->
+        <div class="pdf-preview" id="pdfPreview">
+            <div class="pdf-header">
+                <h1 style="margin: 0; font-size: 2.5rem;">WG HOMES</h1>
+                <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem;">Hostel Admission Application</p>
+            </div>
+            
+            <div class="pdf-content">
+                <div class="pdf-details">
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">Applicant Details</h3>
+                    <div class="pdf-field">
+                        <strong>Full Name:</strong>
+                        <span id="pdfName"></span>
+                    </div>
+                    <div class="pdf-field">
+                        <strong>Age:</strong>
+                        <span id="pdfAge"></span>
+                    </div>
+                    <div class="pdf-field">
+                        <strong>Email:</strong>
+                        <span id="pdfEmail"></span>
+                    </div>
+                    <div class="pdf-field">
+                        <strong>Phone Number:</strong>
+                        <span id="pdfPhone"></span>
+                    </div>
+                    <div class="pdf-field">
+                        <strong>School/College:</strong>
+                        <span id="pdfInstitution"></span>
+                    </div>
+                    <div class="pdf-field">
+                        <strong>Preferred Room:</strong>
+                        <span id="pdfRoomType"></span>
+                    </div>
+                    <div class="pdf-field" id="pdfMessageContainer" style="display: none;">
+                        <strong>Additional Info:</strong>
+                        <span id="pdfMessage"></span>
+                    </div>
+                </div>
+                
+                <div class="pdf-photo">
+                    <img id="pdfPhotoImg" src="" alt="Applicant Photo">
+                </div>
+            </div>
+            
+            <div class="pdf-footer">
+                <p><strong>Application Date:</strong> <span id="pdfDate"></span></p>
+                <p style="margin-top: 0.5rem;">WG Homes - Your Home Away From Home</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="download-btn" onclick="window.print()">Download/Print as PDF</button>
+                <button class="download-btn" onclick="document.getElementById('pdfPreview').classList.remove('active'); document.getElementById('applicationForm').reset();" style="background: #6c757d;">Close</button>
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
@@ -524,12 +685,7 @@
         <p>Making Students Feel at Home Since Day One</p>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Wait for jsPDF to load
-        window.addEventListener('load', function() {
-            console.log('jsPDF loaded:', typeof window.jspdf !== 'undefined');
-        });
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -544,183 +700,56 @@
             });
         });
 
-        // Form submission with PDF generation
+        // Form submission
         document.getElementById('applicationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            console.log('Form submitted');
-            
-            // Check if jsPDF is loaded
-            if (typeof window.jspdf === 'undefined') {
-                alert('PDF library is loading. Please try again in a moment.');
-                return;
-            }
-            
             // Get form data
-            const formData = {
-                name: document.getElementById('name').value,
-                age: document.getElementById('age').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                institution: document.getElementById('institution').value,
-                roomType: document.getElementById('roomType').options[document.getElementById('roomType').selectedIndex].text,
-                message: document.getElementById('message').value
-            };
-            
-            console.log('Form data collected:', formData);
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const institution = document.getElementById('institution').value;
+            const roomType = document.getElementById('roomType').options[document.getElementById('roomType').selectedIndex].text;
+            const message = document.getElementById('message').value;
             
             // Get photo
             const photoInput = document.getElementById('photo');
             if (photoInput.files && photoInput.files[0]) {
-                console.log('Photo found, reading file...');
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    console.log('Photo loaded, generating PDF...');
-                    formData.photo = e.target.result;
-                    try {
-                        generatePDF(formData);
-                        alert('Thank you for your application! Your application PDF has been generated and downloaded. Please check your Downloads folder.');
-                        document.getElementById('applicationForm').reset();
-                    } catch (error) {
-                        console.error('Error generating PDF:', error);
-                        alert('There was an error generating the PDF. Please try again.');
+                    // Populate PDF preview
+                    document.getElementById('pdfName').textContent = name;
+                    document.getElementById('pdfAge').textContent = age;
+                    document.getElementById('pdfEmail').textContent = email;
+                    document.getElementById('pdfPhone').textContent = phone;
+                    document.getElementById('pdfInstitution').textContent = institution;
+                    document.getElementById('pdfRoomType').textContent = roomType;
+                    
+                    if (message.trim() !== '') {
+                        document.getElementById('pdfMessage').textContent = message;
+                        document.getElementById('pdfMessageContainer').style.display = 'grid';
+                    } else {
+                        document.getElementById('pdfMessageContainer').style.display = 'none';
                     }
-                };
-                reader.onerror = function(error) {
-                    console.error('Error reading photo:', error);
-                    alert('There was an error reading the photo. Please try again.');
+                    
+                    const today = new Date();
+                    const dateStr = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+                    document.getElementById('pdfDate').textContent = dateStr;
+                    
+                    document.getElementById('pdfPhotoImg').src = e.target.result;
+                    
+                    // Show PDF preview
+                    document.getElementById('pdfPreview').classList.add('active');
+                    document.getElementById('pdfPreview').scrollIntoView({ behavior: 'smooth' });
+                    
+                    alert('Application preview generated! Click "Download/Print as PDF" button to save or print your application.');
                 };
                 reader.readAsDataURL(photoInput.files[0]);
             } else {
                 alert('Please upload a photo before submitting.');
             }
         });
-
-        function generatePDF(data) {
-            console.log('Starting PDF generation...');
-            
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                console.log('jsPDF instance created');
-                
-                // Colors
-                const primaryColor = [102, 126, 234];
-                const darkColor = [51, 51, 51];
-                
-                // Header background
-                doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                doc.rect(0, 0, 210, 40, 'F');
-                
-                // Title
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(24);
-                doc.setFont(undefined, 'bold');
-                doc.text('WG HOMES', 105, 20, { align: 'center' });
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'normal');
-                doc.text('Hostel Admission Application', 105, 30, { align: 'center' });
-                
-                // Add photo
-                if (data.photo) {
-                    console.log('Adding photo to PDF...');
-                    try {
-                        doc.addImage(data.photo, 'JPEG', 150, 50, 40, 50);
-                    } catch (imgError) {
-                        console.error('Error adding image:', imgError);
-                    }
-                }
-                
-                // Application details
-                doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-                doc.setFontSize(16);
-                doc.setFont(undefined, 'bold');
-                doc.text('Applicant Details', 20, 60);
-                
-                // Draw a line
-                doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                doc.setLineWidth(0.5);
-                doc.line(20, 65, 130, 65);
-                
-                // Details
-                doc.setFontSize(11);
-                doc.setFont(undefined, 'normal');
-                let yPos = 80;
-                
-                // Full Name
-                doc.setFont(undefined, 'bold');
-                doc.text('Full Name:', 20, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text(data.name, 60, yPos);
-                
-                yPos += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text('Age:', 20, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text(data.age.toString(), 60, yPos);
-                
-                yPos += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text('Email:', 20, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text(data.email, 60, yPos);
-                
-                yPos += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text('Phone Number:', 20, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text(data.phone, 60, yPos);
-                
-                yPos += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text('School/College:', 20, yPos);
-                doc.setFont(undefined, 'normal');
-                const institutionText = doc.splitTextToSize(data.institution, 120);
-                doc.text(institutionText, 60, yPos);
-                yPos += (institutionText.length - 1) * 7;
-                
-                yPos += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text('Preferred Room:', 20, yPos);
-                doc.setFont(undefined, 'normal');
-                doc.text(data.roomType, 60, yPos);
-                
-                yPos += 20;
-                
-                // Additional Information
-                if (data.message && data.message.trim() !== '') {
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Additional Information:', 20, yPos);
-                    yPos += 10;
-                    doc.setFont(undefined, 'normal');
-                    const splitMessage = doc.splitTextToSize(data.message, 170);
-                    doc.text(splitMessage, 20, yPos);
-                    yPos += (splitMessage.length * 7);
-                }
-                
-                // Footer
-                yPos = 270;
-                doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                doc.line(20, yPos, 190, yPos);
-                yPos += 7;
-                doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                const today = new Date();
-                const dateStr = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
-                doc.text('Application Date: ' + dateStr, 20, yPos);
-                doc.text('WG Homes - Your Home Away From Home', 105, yPos, { align: 'center' });
-                
-                // Save PDF
-                const fileName = 'WG_Homes_Application_' + data.name.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
-                console.log('Saving PDF as:', fileName);
-                doc.save(fileName);
-                console.log('PDF saved successfully');
-                
-            } catch (error) {
-                console.error('Error in generatePDF:', error);
-                throw error;
-            }
-        }
+    </script>
 </body>
 </html>
