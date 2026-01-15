@@ -192,20 +192,36 @@
         }
 
         .photo-item {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 250px;
+            height: 300px;
             border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2rem;
+            overflow: hidden;
+            position: relative;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .photo-item:hover {
-            transform: scale(1.05);
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .photo-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .photo-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+            padding: 1.5rem 1rem 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
         }
 
         /* Contact Section */
@@ -388,12 +404,34 @@
     <section id="photos">
         <h2>Our Facilities</h2>
         <div class="photo-gallery">
-            <div class="photo-item">Study Room</div>
-            <div class="photo-item">Living Area</div>
-            <div class="photo-item">Dining Hall</div>
-            <div class="photo-item">Bedroom</div>
-            <div class="photo-item">Recreation Zone</div>
-            <div class="photo-item">Kitchen</div>
+            <div class="photo-item">
+                <img src="reception.jpg" alt="Reception Area">
+                <div class="photo-caption">Reception Area</div>
+            </div>
+            <div class="photo-item">
+                <img src="livingroom.webp" alt="Living Area">
+                <div class="photo-caption">Living Area</div>
+            </div>
+            <div class="photo-item">
+                <img src="bedroom.jpg" alt="Bedroom">
+                <div class="photo-caption">Bedroom</div>
+            </div>
+            <div class="photo-item">
+                <img src="diningroom.jpg" alt="Dining Hall">
+                <div class="photo-caption">Dining Hall</div>
+            </div>
+            <div class="photo-item">
+                <img src="kitchen.jpg" alt="Kitchen">
+                <div class="photo-caption">Kitchen</div>
+            </div>
+            <div class="photo-item">
+                <img src="best-girls-hostel-services-917.jpg" alt="Hostel Services">
+                <div class="photo-caption">Hostel Services</div>
+            </div>
+            <div class="photo-item">
+                <img src="hostel-2-1448619525.webp" alt="Hostel Facilities">
+                <div class="photo-caption">Common Area</div>
+            </div>
         </div>
         <p style="text-align: center; margin-top: 2rem; color: #666;">
             Visit us to see our facilities in person!
