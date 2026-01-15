@@ -526,6 +526,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
+        // Wait for jsPDF to load
+        window.addEventListener('load', function() {
+            console.log('jsPDF loaded:', typeof window.jspdf !== 'undefined');
+        });
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -544,6 +548,14 @@
         document.getElementById('applicationForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            console.log('Form submitted');
+            
+            // Check if jsPDF is loaded
+            if (typeof window.jspdf === 'undefined') {
+                alert('PDF library is loading. Please try again in a moment.');
+                return;
+            }
+            
             // Get form data
             const formData = {
                 name: document.getElementById('name').value,
@@ -555,123 +567,160 @@
                 message: document.getElementById('message').value
             };
             
+            console.log('Form data collected:', formData);
+            
             // Get photo
             const photoInput = document.getElementById('photo');
             if (photoInput.files && photoInput.files[0]) {
+                console.log('Photo found, reading file...');
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    console.log('Photo loaded, generating PDF...');
                     formData.photo = e.target.result;
-                    generatePDF(formData);
-                    alert('Thank you for your application! Your application PDF has been generated and downloaded.');
-                    document.getElementById('applicationForm').reset();
+                    try {
+                        generatePDF(formData);
+                        alert('Thank you for your application! Your application PDF has been generated and downloaded. Please check your Downloads folder.');
+                        document.getElementById('applicationForm').reset();
+                    } catch (error) {
+                        console.error('Error generating PDF:', error);
+                        alert('There was an error generating the PDF. Please try again.');
+                    }
+                };
+                reader.onerror = function(error) {
+                    console.error('Error reading photo:', error);
+                    alert('There was an error reading the photo. Please try again.');
                 };
                 reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                alert('Please upload a photo before submitting.');
             }
         });
 
         function generatePDF(data) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            console.log('Starting PDF generation...');
             
-            // Colors
-            const primaryColor = [102, 126, 234];
-            const darkColor = [51, 51, 51];
-            
-            // Header background
-            doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.rect(0, 0, 210, 40, 'F');
-            
-            // Title
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.text('WG HOMES', 105, 20, { align: 'center' });
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'normal');
-            doc.text('Hostel Admission Application', 105, 30, { align: 'center' });
-            
-            // Add photo
-            if (data.photo) {
-                doc.addImage(data.photo, 'JPEG', 150, 50, 40, 50);
-            }
-            
-            // Application details
-            doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-            doc.setFontSize(16);
-            doc.setFont(undefined, 'bold');
-            doc.text('Applicant Details', 20, 60);
-            
-            // Draw a line
-            doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.setLineWidth(0.5);
-            doc.line(20, 65, 190, 65);
-            
-            // Details
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'normal');
-            let yPos = 80;
-            
-            // Full Name
-            doc.setFont(undefined, 'bold');
-            doc.text('Full Name:', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(data.name, 60, yPos);
-            
-            yPos += 15;
-            doc.setFont(undefined, 'bold');
-            doc.text('Age:', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(data.age.toString(), 60, yPos);
-            
-            yPos += 15;
-            doc.setFont(undefined, 'bold');
-            doc.text('Email:', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(data.email, 60, yPos);
-            
-            yPos += 15;
-            doc.setFont(undefined, 'bold');
-            doc.text('Phone Number:', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(data.phone, 60, yPos);
-            
-            yPos += 15;
-            doc.setFont(undefined, 'bold');
-            doc.text('School/College:', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(data.institution, 60, yPos);
-            
-            yPos += 15;
-            doc.setFont(undefined, 'bold');
-            doc.text('Preferred Room:', 20, yPos);
-            doc.setFont(undefined, 'normal');
-            doc.text(data.roomType, 60, yPos);
-            
-            yPos += 20;
-            
-            // Additional Information
-            if (data.message) {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                console.log('jsPDF instance created');
+                
+                // Colors
+                const primaryColor = [102, 126, 234];
+                const darkColor = [51, 51, 51];
+                
+                // Header background
+                doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                doc.rect(0, 0, 210, 40, 'F');
+                
+                // Title
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
                 doc.setFont(undefined, 'bold');
-                doc.text('Additional Information:', 20, yPos);
-                yPos += 10;
+                doc.text('WG HOMES', 105, 20, { align: 'center' });
+                doc.setFontSize(14);
                 doc.setFont(undefined, 'normal');
-                const splitMessage = doc.splitTextToSize(data.message, 170);
-                doc.text(splitMessage, 20, yPos);
-                yPos += (splitMessage.length * 7);
+                doc.text('Hostel Admission Application', 105, 30, { align: 'center' });
+                
+                // Add photo
+                if (data.photo) {
+                    console.log('Adding photo to PDF...');
+                    try {
+                        doc.addImage(data.photo, 'JPEG', 150, 50, 40, 50);
+                    } catch (imgError) {
+                        console.error('Error adding image:', imgError);
+                    }
+                }
+                
+                // Application details
+                doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text('Applicant Details', 20, 60);
+                
+                // Draw a line
+                doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                doc.setLineWidth(0.5);
+                doc.line(20, 65, 130, 65);
+                
+                // Details
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'normal');
+                let yPos = 80;
+                
+                // Full Name
+                doc.setFont(undefined, 'bold');
+                doc.text('Full Name:', 20, yPos);
+                doc.setFont(undefined, 'normal');
+                doc.text(data.name, 60, yPos);
+                
+                yPos += 15;
+                doc.setFont(undefined, 'bold');
+                doc.text('Age:', 20, yPos);
+                doc.setFont(undefined, 'normal');
+                doc.text(data.age.toString(), 60, yPos);
+                
+                yPos += 15;
+                doc.setFont(undefined, 'bold');
+                doc.text('Email:', 20, yPos);
+                doc.setFont(undefined, 'normal');
+                doc.text(data.email, 60, yPos);
+                
+                yPos += 15;
+                doc.setFont(undefined, 'bold');
+                doc.text('Phone Number:', 20, yPos);
+                doc.setFont(undefined, 'normal');
+                doc.text(data.phone, 60, yPos);
+                
+                yPos += 15;
+                doc.setFont(undefined, 'bold');
+                doc.text('School/College:', 20, yPos);
+                doc.setFont(undefined, 'normal');
+                const institutionText = doc.splitTextToSize(data.institution, 120);
+                doc.text(institutionText, 60, yPos);
+                yPos += (institutionText.length - 1) * 7;
+                
+                yPos += 15;
+                doc.setFont(undefined, 'bold');
+                doc.text('Preferred Room:', 20, yPos);
+                doc.setFont(undefined, 'normal');
+                doc.text(data.roomType, 60, yPos);
+                
+                yPos += 20;
+                
+                // Additional Information
+                if (data.message && data.message.trim() !== '') {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Additional Information:', 20, yPos);
+                    yPos += 10;
+                    doc.setFont(undefined, 'normal');
+                    const splitMessage = doc.splitTextToSize(data.message, 170);
+                    doc.text(splitMessage, 20, yPos);
+                    yPos += (splitMessage.length * 7);
+                }
+                
+                // Footer
+                yPos = 270;
+                doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                doc.line(20, yPos, 190, yPos);
+                yPos += 7;
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                const today = new Date();
+                const dateStr = today.getDate() + '/' + (today.getMonth() + 1) + '/' + today.getFullYear();
+                doc.text('Application Date: ' + dateStr, 20, yPos);
+                doc.text('WG Homes - Your Home Away From Home', 105, yPos, { align: 'center' });
+                
+                // Save PDF
+                const fileName = 'WG_Homes_Application_' + data.name.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+                console.log('Saving PDF as:', fileName);
+                doc.save(fileName);
+                console.log('PDF saved successfully');
+                
+            } catch (error) {
+                console.error('Error in generatePDF:', error);
+                throw error;
             }
-            
-            // Footer
-            yPos = 270;
-            doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.line(20, yPos, 190, yPos);
-            yPos += 7;
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Application Date: ' + new Date().toLocaleDateString(), 20, yPos);
-            doc.text('WG Homes - Your Home Away From Home', 105, yPos, { align: 'center' });
-            
-            // Save PDF
-            doc.save('WG_Homes_Application_' + data.name.replace(/\s+/g, '_') + '.pdf');
         }
 </body>
 </html>
